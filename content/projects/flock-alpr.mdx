@@ -1,0 +1,68 @@
+---
+title: "Where the cameras are"
+titleEm: cameras
+order: 2
+featured: true
+kicker: Data · GIS
+summary: "Are Flock license-plate readers placed disproportionately in Hispanic neighborhoods, once you control for roads, population, income and crime?"
+dek: "3,025 license-plate cameras, 2,993 census tracts and two counties that give opposite answers."
+status: Shipped
+coords: "47.4905°N 121.8339°W"
+role: "Solo: data collection, analysis, site"
+timeline: "Sep 2026"
+stack: ["Python", "GeoPandas", "statsmodels", "DuckDB-WASM", "Transformers.js", "Next.js"]
+links:
+  - { label: "Live site", href: "https://flock-demographics-analysis.vercel.app" }
+  - { label: "GitHub", href: "https://github.com/Savowai/flock-demographics-analysis" }
+facts:
+  - { label: "Finding", value: "+30.3% per 10pt, King Co. (p = .035)" }
+  - { label: "Scale", value: "3,025 cameras · 2,993 tracts" }
+figure: flock
+---
+
+<Chapter n="i." label="Question">
+
+Flock Safety's automated license-plate readers are spreading through American cities, and the data they collect can be searched by agencies far from where it was captured. The question people keep asking is whether the cameras are **placed disproportionately in Hispanic and Latino neighborhoods**.
+
+That question has innocent explanations built in. Cameras go on busy roads, in dense places, and where crime is reported. A fair answer has to control for all of that, and has to say plainly what the data can't show.
+
+</Chapter>
+
+<Chapter n="ii." label="Method">
+
+<Stats items={[["3,025", "Flock cameras mapped"], ["2,993", "census tracts"], ["481k", "crime records joined"], ["42", "policy documents indexed"]]} />
+
+I built the dataset end to end: camera locations from OpenStreetMap, demographics from the Census API, arterial road-miles from OSM, and crime records from LAPD and Seattle PD. Every camera was joined to its tract.
+
+- **Negative binomial models** of cameras per tract, with arterial road-miles as the offset, so the model predicts cameras *per road-mile*. Controls for population, income and density.
+- **Four specifications**, from a base model to a within-city model that compares neighborhoods policed by the same department.
+- **Spatial checks.** Camera counts clump, so tracts aren't independent. Moran's I on the residuals was 0.15 in both counties, so I fitted a spatial lag model as a cross-check on direction.
+- **A retailer test.** Every Home Depot and Lowe's against a control group of big-box stores that aren't day-labor sites, counting only cameras the chain doesn't operate.
+
+<Shot src="/work/flock.png" alt="The Flock ALPR Analysis site: a headline asking whether Flock camera placement tracks neighbourhood demographics, and four dataset figures." caption="Fig. 3 · The published site. Queries run in the browser over a 0.8 MB Parquet file; nothing is sent to a server." />
+
+</Chapter>
+
+<Chapter n="iii." label="Findings">
+
+| Model | LA County | King County |
+| --- | --- | --- |
+| Base | −4.2% (p = 0.040) | +45.8% (p = 0.006) |
+| Within-city | −6.3% (p = 0.008) | **+30.3% (p = 0.035)** |
+| Block group | −3.1% (p = 0.035) | +24.2% (p < 0.001) |
+
+*Effect on cameras per road-mile of a 10-point increase in Hispanic share.*
+
+- **The counties disagree.** In King County, a neighborhood 10 points more Hispanic has about 30% more cameras per road-mile, even compared within the same city. In LA the effect is slightly negative. There is no single pattern across both.
+- **The most consistent result isn't about neighborhoods.** Home Depot and Lowe's are about five times as likely as comparable big-box stores to have someone else's camera within 150 m: odds ratios of 5.21 in LA and 5.81 in King.
+- **Adoption is nearly universal.** 81 of 88 LA cities and 25 of 31 King County cities have mapped cameras, and adopters look demographically the same as non-adopters.
+
+### What the data can't say
+
+The camera map is crowdsourced, so it's incomplete and the gaps probably aren't random. A camera inside a city wasn't necessarily bought by that city. And placement disparity isn't evidence of intent. The site says all of this next to the results, not in a footnote.
+
+### How it ships
+
+A fully static Next.js site with interactive maps, DuckDB-WASM running the 11,129-row analysis table in the browser, and document search that embeds your question locally against 432 KB of quantized vectors. No server, no API key, nothing to abuse, and it costs nothing to run.
+
+</Chapter>

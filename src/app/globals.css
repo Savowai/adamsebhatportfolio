@@ -1,26 +1,231 @@
 @import "tailwindcss";
 
+/* Survey Sheet: a cartographic survey drawn on paper. One deliberate light look. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f1ede2;
+  --paper-2: #e8e3d5;
+  --ink: #1a1a17;
+  --ink-2: #4a4a43;
+  --orange: #e0521f; /* graphics only: contours, dots, gates */
+  --orange-ink: #b23c12; /* text-safe orange, 5:1 on paper */
+  --sage: #8c9a84;
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-orange: var(--orange);
+  --color-orange-ink: var(--orange-ink);
+  --color-sage: var(--sage);
+
+  --font-serif: var(--font-instrument), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --spacing-s1: 4px;
+  --spacing-s2: 8px;
+  --spacing-s3: 16px;
+  --spacing-s4: 24px;
+  --spacing-s5: 40px;
+  --spacing-s6: 64px;
+  --spacing-s7: 104px;
+
+  --breakpoint-lg: 900px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--paper);
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (hover: hover) {
+  body {
+    cursor: crosshair;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--orange-ink);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--orange);
+  color: var(--paper);
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+@layer components {
+  .label {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .wrap {
+    position: relative;
+    margin-inline: auto;
+    max-width: 1240px;
+    padding-inline: 16px;
+  }
+  @media (min-width: 768px) {
+    .wrap {
+      padding-inline: 56px;
+    }
+  }
+
+  .rule {
+    border-top: 1px solid var(--ink);
+  }
+
+  .link-underline {
+    text-decoration: none;
+    border-bottom: 1.5px solid currentColor;
+    padding-bottom: 2px;
+  }
+  .link-underline:hover {
+    color: var(--orange-ink);
+  }
+
+  /* Contours behind the hero; the hovered project's band turns orange */
+  .contours path {
+    fill: none;
+    stroke: var(--sage);
+    stroke-width: 0.8;
+    opacity: 0.45;
+    vector-effect: non-scaling-stroke;
+    transition: stroke 0.35s, opacity 0.35s, stroke-width 0.35s;
+  }
+  [data-hot="0"] .contours path[data-band="0"],
+  [data-hot="1"] .contours path[data-band="1"],
+  [data-hot="2"] .contours path[data-band="2"],
+  [data-hot="3"] .contours path[data-band="3"],
+  [data-hot="4"] .contours path[data-band="4"] {
+    stroke: var(--orange);
+    opacity: 0.95;
+    stroke-width: 1.4;
+  }
+
+  /* Case-study prose rendered from MDX */
+  .prose-survey {
+    font-size: 18px;
+    line-height: 1.6;
+    min-width: 0;
+  }
+  .prose-survey > * + * {
+    margin-top: 1em;
+  }
+  .prose-survey h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 1.1;
+    margin-top: var(--spacing-s5);
+  }
+  .prose-survey a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose-survey a:hover {
+    color: var(--orange-ink);
+  }
+  .prose-survey strong {
+    font-weight: 600;
+  }
+  .prose-survey ul {
+    list-style: none;
+    border-top: 1px solid var(--ink);
+  }
+  .prose-survey ul > li {
+    padding: 10px 0 10px 22px;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+    position: relative;
+  }
+  .prose-survey ul > li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 20px;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--orange-ink);
+    transform: rotate(45deg);
+  }
+  .prose-survey code {
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    background: var(--paper-2);
+    padding: 1px 4px;
+  }
+  .prose-survey pre {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 16px;
+    overflow-x: auto;
+  }
+  .prose-survey pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+  .prose-survey table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  .prose-survey th {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 8px 12px 8px 0;
+    border-bottom: 1px solid var(--ink);
+  }
+  .prose-survey td {
+    padding: 12px 12px 12px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+    vertical-align: top;
+  }
+  .table-scroll {
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

@@ -1,0 +1,57 @@
+---
+title: "The xR philosophy"
+titleEm: xR
+order: 4
+kicker: Models
+summary: "Expected Results for Europe's top five leagues, rebuilt hourly."
+dek: "A football model that scores matches on the chances each side created, not the scoreline, and publishes its own report card."
+status: Shipped
+coords: "51.5072°N 0.1276°W"
+role: "Solo: modeling, data pipeline, site"
+timeline: "Nov 2025 – present"
+stack: ["Python", "Next.js 16", "TypeScript", "GitHub Actions", "Vercel"]
+links:
+  - { label: "Live site", href: "https://xrphilosophy.vercel.app" }
+  - { label: "GitHub", href: "https://github.com/Savowai/xr-football" }
+facts: []
+figure: image
+image: /work/xr.png
+imageAlt: "The xR philosophy overview page for the Premier League: league table with expected points, power ratings, and upcoming fixtures with predicted goal rates."
+---
+
+<Chapter n="i." label="Problem">
+
+A team can create 3.1 expected goals, dominate a match, and lose 1–0 to a breakaway. Tables built on results reward luck along with quality. The **Expected Result** asks what *should* have happened, based on the rate at which each side creates and concedes chances.
+
+</Chapter>
+
+<Chapter n="ii." label="Process">
+
+Every team gets an attack rating and a defence rating as multipliers of the league average. Those produce expected goal rates for each fixture, which go through a Dixon-Coles bivariate Poisson to give a full scoreline grid, and from there win, draw and loss probabilities and expected points.
+
+- **Time-decayed.** Every match is weighted by how recent it is, so form matters without an arbitrary "last 10 games" cut-off.
+- **Shrunk.** Gamma priors stop three good results from producing an absurd rating in August.
+- **Cross-season.** Last season's ratings carry over, regressed 30% toward the mean. Promoted clubs start from a fitted baseline.
+- **xG-blended.** Ratings fitted on goals and on shot quality, blended at 65% weight on xG.
+- **Dixon-Coles corrected.** Fixes plain Poisson's mispricing of low scores like 0–0 and 1–1.
+- **Rebuilt hourly** by GitHub Actions, for five leagues fitted independently.
+
+<Shot src="/work/xr.png" alt="The xR philosophy overview page for the Premier League." caption="Fig. 3 · The overview page: actual table beside expected points, power ratings and upcoming fixtures." />
+
+</Chapter>
+
+<Chapter n="iii." label="Result">
+
+The first version scored **worse than the league base rate**: you would have done better predicting the same three numbers for every match. That's what prompted the rebuild.
+
+| Model | RPS ↓ | Log loss ↓ | Accuracy |
+| --- | --- | --- | --- |
+| **xR (current)** | **0.2069** | **1.0281** | **49.4%** |
+| League base rate | 0.2271 | 1.0843 | 42.0% |
+| xR (previous) | 0.2326 | 1.1164 | 40.9% |
+
+*Walk-forward backtest on 350 matches of the 2025–26 Premier League. Every forecast uses only matches played before kick-off.*
+
+The rebuild improved RPS by 11%. These numbers are written by the backtest script, not typed by hand, because a hand-maintained table drifted from the code twice.
+
+</Chapter>

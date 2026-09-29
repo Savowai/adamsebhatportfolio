@@ -1,0 +1,55 @@
+---
+title: "Claude automation portfolio"
+order: 5
+kicker: Automation
+summary: "Scheduled tasks, skills and MCP connectors I run on my own work, with the failures each one hit and the rule it follows now."
+dek: "Eleven systems built on Claude that run my job search, my inbox and my agency, documented with what broke and what changed."
+status: Running
+coords: "34.0736°N 118.2400°W"
+role: "Solo: design, build, operation"
+timeline: "2026 – present"
+stack: ["Claude Code", "Claude API", "Cowork scheduled tasks", "MCP", "Airtable", "Gmail API"]
+links:
+  - { label: "GitHub", href: "https://github.com/Savowai/claude-automation-portfolio" }
+facts: []
+figure: image
+---
+
+<Chapter n="i." label="Problem">
+
+Most AI automation demos run once, on a good day. The systems here run every day against my real email, calendar, job search and agency CRM, which means they hit real failures. The work is less about the first prompt and more about **what happens the second time something goes wrong**.
+
+</Chapter>
+
+<Chapter n="ii." label="The systems">
+
+| System | What it does | Built with |
+| --- | --- | --- |
+| Job search pipeline | Sources fresh job links every morning, tailors a resume and cover letter for top matches, keeps a tracker current from Gmail and Indeed | Cowork scheduled tasks, Claude in Chrome, Gmail, Airtable |
+| Airtable "Agency Brain" | A 13-table base that acts as long-term memory for every Claude session, plus CRM, approval log and site store | Airtable MCP and REST API |
+| Savowai agent platform | Four Claude agents gated on my approval ([case study](/work/savowai)) | Next.js, Claude API, Vercel cron |
+| Morning brief | A one-page daily brief of my calendar and the email that actually needs me | `morning` skill, Google Calendar, Gmail |
+| Skills | Reusable instruction packages that change how Claude works in every session | `SKILL.md` |
+| Connectors and MCP | 10 account-level connectors, Claude in Chrome and a project-scoped MCP server | MCP |
+
+### Engineering approach
+
+- **Human approval at every external step.** No email sent, no application submitted, no site shown to a prospect without my explicit yes.
+- **Verification over trust.** Job links are accepted only if read from a live page's DOM and spot-checked with a screenshot. Resumes are checked programmatically for page count and bottom whitespace before I see them.
+- **Platform limits are engineered around.** Airtable automations can't delete records, so routing automations copy and flag, and an hourly task deletes flagged rows.
+- **Failures become written rules.** Each system carries rules in `CLAUDE.md` files, skills and project memory, so the next session starts from the rule.
+
+</Chapter>
+
+<Chapter n="iii." label="Failures that became rules">
+
+| What went wrong | Rule now |
+| --- | --- |
+| Job links from web search pointed at postings that didn't exist | Links come only from the live site's DOM, spot-checked with a screenshot |
+| An inbox scan scoped to a label reported "no activity"; the label was empty | Scan the whole inbox with four independent searches, including a negative-space sweep |
+| A recruiter wrote from their own company domain and was missed | Search `from:` every tracked company's domain |
+| A message-count badge was reported as unread employer messages | Open the thread; report only what a human employer wrote |
+| 14 of 15 tailored resumes spilled onto a sparse second page | Every resume is exactly one page, verified programmatically |
+| Schedule edits failed from inside scheduled-task sessions | Cron changes happen from a fresh session; prompt changes go in the task's `SKILL.md` |
+
+</Chapter>

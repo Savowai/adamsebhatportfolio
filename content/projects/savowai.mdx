@@ -1,0 +1,105 @@
+---
+title: "Savowai: four agents, one human"
+titleEm: one
+order: 1
+featured: true
+kicker: Agents
+summary: "A Claude-powered pipeline that finds, researches, builds and pitches. The approval queue is the only way out."
+dek: "An AI pipeline that runs a web studio's client funnel, where nothing reaches a real business until a person approves it."
+status: Running
+coords: "34.0522°N 118.2437°W"
+role: "Solo: product, design, engineering"
+timeline: "Jun – Aug 2026"
+stack: ["Next.js 16", "React 19", "Claude API", "Airtable", "NextAuth", "Vercel Cron"]
+links:
+  - { label: "GitHub", href: "https://github.com/Savowai/savowai-app" }
+  - { label: "Demo site it built", href: "https://rizn-smoke-shop.vercel.app" }
+facts:
+  - { label: "Stack", value: "Next.js 16 · Claude API · Airtable" }
+  - { label: "Role", value: "Solo · design + engineering" }
+figure: pipeline
+---
+
+<Chapter n="i." label="Problem">
+
+A one-person studio lives or dies on its pipeline: find businesses with a weak web presence, learn what they do, build something worth showing them, then write to them. Each lead took hours, and most of those hours were repetitive.
+
+Agents could do most of it. But an autonomous agent that emails a real business a half-rendered website does more damage than doing nothing. The real problem was **how to get the speed without losing control**.
+
+</Chapter>
+
+<Chapter n="ii." label="Process">
+
+I split the funnel into four stages and gave each one to a single agent. Every hand-off goes through the same approval queue.
+
+<StageSchematic />
+
+### Anatomy of one agent
+
+All four agents follow the same seven steps. Only the context, the prompt and the output check change from one agent to the next.
+
+<Steps
+  caption="Fig. 4 · The shared agent loop"
+  items={[
+    ["Trigger", "A daily Vercel cron, or my approval of the previous stage"],
+    ["Context", "The lead record from Airtable, plus the previous stage's output"],
+    ["Prompt", "A role prompt, with the niche's design system injected as data"],
+    ["Call", "Claude Sonnet 4.5, with a token budget sized to the job"],
+    ["Validate", "Check stop_reason and the output's shape; reject if it fails"],
+    ["Queue", "Write an approval task, skipped if one is already open"],
+    ["Advance", "Create the next stage only after I approve"],
+  ]}
+/>
+
+### The four agents
+
+| Agent | Reads | Writes | Budget | Guardrail |
+| --- | --- | --- | --- | --- |
+| **Aria** · scout | Niche and area | Scored candidate businesses | 2k | Each new lead is reviewed before any research runs |
+| **Marcus** · research | An approved lead | Hours, reviews, products, brand colors | 1k | Evidence only: no invented reviews, stock or hours |
+| **Riley** · build | Research plus the niche's design system | A full site, stored and served at a shareable URL | 16k | Cut-off or unclosed HTML is rejected |
+| **Jordan** · outreach | Research plus the built site | A drafted message | 1k | Sent only from my address, only after I say yes |
+
+### Decisions that mattered
+
+<Decisions>
+  <Decision title="No orchestration framework.">Each agent is a plain server function behind its own route. The pipeline is explicit, so every stage can be debugged in isolation and a failure stays in its stage.</Decision>
+  <Decision title="Approval is structural, not a policy.">`queue/decide` is the only route from agent output to a visible action, so autonomy can't quietly route around review.</Decision>
+  <Decision title="Idempotent hand-offs.">Before queueing, the pipeline checks for an unresolved task for the same business and stage, so a retry can't queue the same work twice.</Decision>
+  <Decision title="Order is a design decision.">An early version drafted outreach before a site existed. Now the order is research, then build, then contact, so every pitch has something to show.</Decision>
+  <Decision title="Skills don't reach runtime.">Design skills installed in Claude Code shaped my coding sessions, not the API calls the app makes later. So each niche's palette, fonts and required sections live as data in `design-systems.ts` and are injected into Riley's prompt.</Decision>
+  <Decision title="Fail loudly on partial output.">If a build is cut off by the token limit, it's rejected, not saved.</Decision>
+</Decisions>
+
+```ts
+if (response.stop_reason === "max_tokens" || !/<\/html>\s*$/i.test(html)) {
+  throw new Error(`Riley's HTML came back incomplete. Refusing to save a broken page.`);
+}
+```
+
+</Chapter>
+
+<Chapter n="iii." label="Result">
+
+The whole funnel runs on a daily cron and then waits for me. I review a queue instead of doing the work, and a bad generation never leaves the building.
+
+<Shot src="/work/rizn.png" alt="The RIZN Smoke & Vape homepage: a dark page with the shop's name in large white type, an Open now status, and call and directions buttons." caption="Fig. 5 · RIZN Smoke & Vape, a demo site built through the pipeline. Palette taken from the shop's real signage." />
+
+### Failures that became rules
+
+| What went wrong | Rule now |
+| --- | --- |
+| Riley produced unstyled raw HTML | Each niche gets a real design system, stored as data |
+| A half-finished generation could have been saved and sent | Incomplete output is rejected, not stored |
+| Outreach was drafted before there was anything to show | Research, then build, then contact |
+| A refused OAuth token was swallowed silently | Errors surface with their reason, and tokens refresh automatically |
+
+### Security, briefly
+
+Google sign-in with an email allowlist that locks everyone out if the list is empty. Owner-only routes for the agents. A secret on the cron endpoint. API keys never reach the browser.
+
+### What I'd do next
+
+Add evals on the research stage, since that's where a wrong fact spreads into every later stage, and record approve and reject decisions as training signal for the prompts.
+
+</Chapter>

@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Adam Sebhat · Portfolio
 
-## Getting Started
+Personal portfolio at [adamsebhatportfolio.vercel.app](https://adamsebhatportfolio.vercel.app).
+The design is a cartographic survey sheet: contour lines from real Los Angeles elevation data,
+a live coordinate readout, and projects filed as numbered sheets.
 
-First, run the development server:
+Next.js 16 (App Router), TypeScript, Tailwind CSS v4, MDX. Fully static.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # production build, also type-checks
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Add a new project
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Every project is one MDX file in `content/projects/`. The home page, the index, the case-study
+page, the sitemap and the share image are all generated from it. No layout code changes.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create `content/projects/<slug>.mdx`. The filename becomes the URL: `/work/<slug>`.
+2. Fill in the frontmatter:
 
-## Learn More
+   ```yaml
+   ---
+   title: "xR RAG"
+   titleEm: RAG               # optional: one word set in italic orange on the case study
+   order: 6                   # position in the list (1 = first)
+   featured: false            # true puts it in "Featured surveys" on the home page
+   kicker: RAG                # short category label
+   summary: "One sentence for the project list."
+   dek: "One or two sentences under the case-study title. Also the SEO description."
+   status: In progress        # Shipped | In progress | Running
+   coords: "51.5072°N 0.1276°W"
+   role: "Solo: retrieval, evaluation, site"
+   timeline: "Oct 2026 – present"
+   stack: ["Python", "pgvector", "Next.js"]
+   links:                     # or `links: []` if nothing is public yet
+     - { label: "Live site", href: "https://..." }
+     - { label: "GitHub", href: "https://github.com/Savowai/..." }
+   facts:                     # shown on the featured card; only needed if featured
+     - { label: "Stack", value: "Python · pgvector" }
+   figure: image              # image | pipeline | flock
+   image: /work/xr-rag.png    # screenshot in public/work/, used when figure is image
+   imageAlt: "What the screenshot shows"
+   ---
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Write the case study below the frontmatter. Use Markdown plus these components:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```mdx
+   <Chapter n="i." label="Problem">
+   Markdown paragraphs, lists, **bold**, `code` and tables all work in here.
+   </Chapter>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   <Stats items={[["3,025", "cameras mapped"], ["2,993", "census tracts"]]} />
 
-## Deploy on Vercel
+   <Shot src="/work/xr-rag.png" alt="..." caption="Fig. 3 · ..." />
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   <Steps caption="Fig. 4 · ..." items={[["Trigger", "What starts it"], ["Call", "What it does"]]} />
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   <Decisions>
+     <Decision title="A decision.">Why it was made.</Decision>
+   </Decisions>
+   ```
+
+   Keep the story shape: **Problem → Process → Result**.
+
+4. Add a screenshot to `public/work/` if you have one. To capture a live site at the same size
+   as the others:
+
+   ```bash
+   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars \
+     --window-size=1440,900 --virtual-time-budget=8000 \
+     --screenshot="$PWD/public/work/<slug>.png" https://your-site.vercel.app
+   ```
+
+5. Run `npm run build` to check it, then commit and push. Vercel deploys `main` automatically.
+
+## Where things live
+
+| Path | What it is |
+| --- | --- |
+| `content/projects/*.mdx` | Project content |
+| `src/lib/site.ts` | Name, email, links, résumé path |
+| `src/app/globals.css` | Design tokens (color, type, spacing) |
+| `src/components/mdx/` | Components available inside MDX |
+| `src/data/*.json` | Generated map data (see below) |
+| `public/Adam_Sebhat_Resume.pdf` | Public résumé (no phone number) |
+
+## Map data
+
+The contour lines and the Flock camera map are real data, generated once and committed.
+
+```bash
+node scripts/build-contours.mjs     # LA elevation contours from AWS Terrain Tiles
+node scripts/build-camera-map.mjs "<flock repo>/web/public/data/cameras_la.geojson"
+```
+
+## Quality bar
+
+Lighthouse 95+ in every category on mobile and desktop, no horizontal scroll at 360px,
+keyboard navigable with visible focus, and all motion off under `prefers-reduced-motion`.
