@@ -89,7 +89,8 @@ export default async function CaseStudy({ params }: PageProps<"/work/[slug]">) {
           <MDXRemote
             source={project.body}
             components={mdxComponents}
-            options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+            // Content is our own repo's MDX; JSX props like items={[...]} need expressions enabled.
+            options={{ blockJS: false, mdxOptions: { remarkPlugins: [remarkGfm] } }}
           />
         </article>
 
