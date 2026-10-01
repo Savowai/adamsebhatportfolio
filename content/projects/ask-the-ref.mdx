@@ -2,43 +2,52 @@
 title: "Ask the Ref"
 order: 3
 kicker: RAG
-summary: "Evidence-first Q&A over the football laws in force today, citing the official texts."
-dek: "A retrieval system over five official rulebooks, built to cite the law or say it can't find it."
-status: In progress
+summary: "Evidence-first search over the current IFAB Laws: plain-English questions in, exact rule text and page citations out."
+dek: "A retrieval system over 348 structured sections of the Laws of the Game, built to quote the rule or say it can't find it."
+status: Shipped
 coords: "47.3769°N 8.5417°E"
-role: "Solo: data, retrieval, evaluation"
-timeline: "Sep 2026 – present"
-stack: ["Python 3.13", "PostgreSQL 17", "pgvector", "Docker Compose", "Next.js (planned)"]
-links: []
-facts: []
+role: "Solo: data, retrieval, evaluation, app"
+timeline: "Sep 2026"
+stack: ["Python", "PostgreSQL 17", "pgvector", "Docker", "Ollama", "Next.js", "TypeScript", "Vercel"]
+links:
+  - { label: "Live site", href: "https://ask-the-ref-liart.vercel.app/" }
+  - { label: "GitHub", href: "https://github.com/Savowai/ask-the-ref" }
+facts:
+  - { label: "Corpus", value: "348 sections · IFAB 2026/27" }
+  - { label: "Public app", value: "No model API key" }
 figure: image
 ---
 
 <Chapter n="i." label="Problem">
 
-Football's rules are spread across several documents that don't agree on everything: the IFAB Laws of the Game, FIFA's transfer regulations, UEFA competition rules and the Premier League handbook. Fans, coaches and referees ask questions like "can a goalkeeper score from a throw-in?" and get confident answers with no source.
+Football's rules are long, cross-referenced and amended every year. Fans, coaches and referees ask questions like "is that a handball?" or "is it a second yellow?" and get confident answers with no source.
 
-A general chatbot makes this worse, because it answers fluently whether or not it has the text. The goal here is the opposite: **answer from the official text, cite the section, and say so when the text doesn't cover it.**
-
-</Chapter>
-
-<Chapter n="ii." label="Process so far">
-
-The project runs in phases, and each phase has to be measured before the next one starts. Phase 2 is complete.
-
-- **Sources as a manifest.** `sources.yaml` lists the five official PDFs with their editions. They are downloaded, never committed.
-- **Section-level parsing.** The IFAB laws are split into their real sections, so a citation points to a numbered section of a Law, not a page number.
-- **Hybrid retrieval.** Postgres 17 with pgvector, combining lexical and vector search, running locally in Docker.
-- **Safe re-ingestion.** Replacing a rulebook happens in one transaction under a per-book lock. An integration test forces a failure mid-insert and checks that the old corpus is untouched.
-
-### Measuring before answering
-
-A 12-question smoke test checks whether the right section shows up in the top five results. Vector search found it for 10 of 12, hybrid for 9 of 12, at about 20 ms. That's a diagnostic, not a benchmark, and the project notes say so. A proper held-out evaluation comes before any generated answers.
+A general chatbot makes this worse, because it answers fluently whether or not it has the text. The goal here is the opposite: **quote the current Law, cite the page, and refuse when the text doesn't cover it.**
 
 </Chapter>
 
-<Chapter n="iii." label="What's next">
+<Chapter n="ii." label="Corpus and ingestion">
 
-Phase 3 adds generated answers that must quote the retrieved sections. Phase 4 is the full evaluation: multi-evidence recall, answer correctness and citation faithfulness. After that come the API, the web interface and deployment.
+<Stats items={[["348", "structured sections"], ["17", "Laws, plus VAR and glossary"], ["384", "embedding dimensions"]]} />
+
+- **Structure-aware parsing.** The IFAB PDF is split by Law, section, subsection, definition, protocol and guidance, not by fixed-size windows. Each chunk keeps its full heading path, numbered lists, edition and PDF page range.
+- **Pinned sources.** `sources.yaml` lists official hosts and SHA-256 hashes. A changed file fails closed until it is reviewed.
+- **Safe re-ingestion.** Replacing a rulebook runs in one transaction under a per-book lock. An integration test forces a failure mid-insert and checks the old corpus is untouched.
+
+</Chapter>
+
+<Chapter n="iii." label="Retrieval">
+
+PostgreSQL 17 with pgvector runs hybrid search: full-text plus local MiniLM embeddings, reranked by a cross-encoder. A query layer expands football slang ("handball", "second yellow", "DOGSO", "back-pass", "offside trap") into the rulebook's own vocabulary, and off-topic questions are refused.
+
+A 12-question smoke test checked whether the right section landed in the top five: vector search found it for 10 of 12, hybrid for 9 of 12, at about 20 ms. That is a diagnostic, not a benchmark, and the repo says so. A held-out evaluation set is planned.
+
+</Chapter>
+
+<Chapter n="iv." label="Answers and deployment">
+
+Locally, an Ollama model writes an answer that must cite the retrieved sections. Every citation is validated, and the pipeline fails closed if one doesn't check out.
+
+That 4.7 GB model can't run in a Vercel function, so the public app uses deterministic corpus search instead: it retrieves and quotes the relevant rules and never generates a ruling. It needs no model key and has no per-query cost. FIFA, UEFA and Premier League regulations are the planned next sources.
 
 </Chapter>
