@@ -31,8 +31,8 @@ export default function Home() {
         <section className="relative">
           <Contours />
           <div className="relative grid gap-s4 pt-[72px] pb-s6 lg:grid-cols-12 lg:pt-[132px] lg:pb-s7">
-            <h1 className="font-serif text-[clamp(46px,8.6vw,128px)] leading-[0.92] tracking-[-0.022em] lg:col-span-10">
-              I build AI that knows when to <em className="text-orange-ink">stop</em> and ask.
+            <h1 className="font-serif text-[clamp(34px,5vw,68px)] leading-[1.05] tracking-[-0.015em] lg:col-span-8">
+              AI Engineer building agentic systems, retrieval pipelines, and evaluation.
             </h1>
             <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
               <p className="label">
