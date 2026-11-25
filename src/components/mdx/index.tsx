@@ -81,6 +81,26 @@ function Shot({ src, alt, caption, width = 1440, height = 900 }: { src: string; 
   );
 }
 
+/** A short video that plays in the page. Vertical clips are held to a phone width. */
+function Clip({ src, poster, caption, vertical = false, label }: { src: string; poster?: string; caption: string; vertical?: boolean; label: string }) {
+  return (
+    <figure>
+      <div className={`max-w-full overflow-hidden border border-ink bg-ink ${vertical ? "mx-auto w-full max-w-[340px]" : ""}`}>
+        <video
+          src={src}
+          poster={poster}
+          controls
+          playsInline
+          preload="metadata"
+          aria-label={label}
+          className={`block h-auto w-full ${vertical ? "aspect-[9/16]" : "aspect-[16/10]"}`}
+        />
+      </div>
+      <figcaption className="label mt-2">{caption}</figcaption>
+    </figure>
+  );
+}
+
 function Table(props: ComponentProps<"table">) {
   return (
     <div className="table-scroll" role="region" aria-label="Table" tabIndex={0}>
@@ -89,4 +109,4 @@ function Table(props: ComponentProps<"table">) {
   );
 }
 
-export const mdxComponents = { Chapter, Steps, Decisions, Decision, Stats, Shot, StageSchematic, table: Table };
+export const mdxComponents = { Chapter, Steps, Decisions, Decision, Stats, Shot, Clip, StageSchematic, table: Table };
