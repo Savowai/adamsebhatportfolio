@@ -82,7 +82,7 @@ function Shot({ src, alt, caption, width = 1440, height = 900 }: { src: string; 
 }
 
 /** A short video that plays in the page. Vertical clips are held to a phone width. */
-function Clip({ src, poster, caption, vertical = false, label }: { src: string; poster?: string; caption: string; vertical?: boolean; label: string }) {
+function Clip({ src, poster, caption, vertical = false, wide = false, label }: { src: string; poster?: string; caption: string; vertical?: boolean; wide?: boolean; label: string }) {
   return (
     <figure>
       <div className={`max-w-full overflow-hidden border border-ink bg-ink ${vertical ? "mx-auto w-full max-w-[340px]" : ""}`}>
@@ -93,7 +93,7 @@ function Clip({ src, poster, caption, vertical = false, label }: { src: string; 
           playsInline
           preload="metadata"
           aria-label={label}
-          className={`block h-auto w-full ${vertical ? "aspect-[9/16]" : "aspect-[16/10]"}`}
+          className={`block h-auto w-full ${vertical ? "aspect-[9/16]" : wide ? "aspect-video" : "aspect-[16/10]"}`}
         />
       </div>
       <figcaption className="label mt-2">{caption}</figcaption>
