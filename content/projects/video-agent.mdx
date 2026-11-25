@@ -1,0 +1,56 @@
+---
+title: "Video agent"
+titleEm: agent
+order: 6
+kicker: Agents
+summary: "Type a topic or paste a link, get back a captioned 9:16 short you can edit before it renders."
+dek: "A Claude agent researches the topic, writes and scenes the script and picks the visuals; ElevenLabs voices it and Remotion renders the MP4."
+status: Shipped
+coords: "34.0407°N 118.2468°W"
+role: "Solo: agent design, pipeline, dashboard"
+timeline: "Nov 2026"
+stack: ["Claude API", "TypeScript", "Next.js 15", "Remotion", "ElevenLabs", "Pexels"]
+links: []
+facts:
+  - { label: "Render", value: "35 s · 1080 x 1920 in about 110 s" }
+  - { label: "Setup", value: "One command, runs with zero API keys" }
+figure: image
+image: /work/video-agent.png
+imageAlt: "The Video Agent editor: a match preview script split into editable scene cards on the left, and a vertical video preview with download controls on the right."
+---
+
+<Chapter n="i." label="Problem">
+
+Short video is the cheapest distribution there is, but every 40 second clip still costs an hour of scripting, recording, finding footage and timing captions. I wanted to type "Arsenal vs Chelsea" or paste an article and get back a finished vertical video, **with a chance to fix the script before anything renders**.
+
+</Chapter>
+
+<Chapter n="ii." label="How it works">
+
+<Steps
+  caption="Fig. 2 · From topic to MP4"
+  items={[
+    ["Research", "A Claude agent reads the pasted link, searches the web and, for football, calls my Dixon Coles forecast"],
+    ["Script", "The agent submits 4 to 8 scenes through a schema checked tool: narration, headline and a visual for each"],
+    ["Edit", "Every line, visual and chart value is editable in the dashboard, with a live preview"],
+    ["Voice", "ElevenLabs reads each scene and returns timestamps that drive word by word captions"],
+    ["Render", "Remotion renders 1080 x 1920 at 30 fps H.264 in a worker process"],
+  ]}
+/>
+
+- **Structured output, not free text.** The agent can only finish by calling `submit_script`, which is validated with zod and normalized before it reaches the editor.
+- **Numbers come from tools.** In the football preset the agent is told to use odds only from the forecast tool, so the video never invents a probability.
+- **Edit cost stays small.** Voice is cached per scene by content hash, so changing one line re-records one line.
+- **Works without keys.** Demo mode falls back to the Mac's voice and animated backgrounds and still renders a real MP4.
+
+</Chapter>
+
+<Chapter n="iii." label="xR Football preset">
+
+<Stats items={[["6", "scenes per match preview"], ["35 s", "rendered video"], ["21", "unit tests"]]} />
+
+The match preview turns a fixture into expected goals, a win probability chart, the most likely score, goals markets and a pick, all from the same Dixon Coles model behind [the xR philosophy](/work/xr-philosophy).
+
+<Shot src="/work/video-agent-frames.png" width={1800} height={640} alt="Five frames from a rendered Arsenal vs Chelsea preview: the title card, expected goals, a win probability chart, the most likely score and the pick." caption="Fig. 3 · Frames from a rendered Arsenal vs Chelsea preview." />
+
+</Chapter>
