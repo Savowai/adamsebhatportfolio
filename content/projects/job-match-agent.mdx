@@ -1,0 +1,59 @@
+---
+title: "Job Match Agent"
+titleEm: Agent
+order: 6
+kicker: Agents
+summary: "A LangGraph agent that scores fresh job postings against my resume with RAG and drafts tailored bullets with Claude."
+dek: "An agent that triages my job search every morning: it retrieves resume evidence for every requirement in a posting, ranks the fit, and writes the bullets."
+status: Shipped
+coords: "34.0522°N 118.2437°W"
+role: "Solo: design, build, deploy"
+timeline: "Nov 2026"
+stack: ["LangGraph", "Claude API", "RAG", "Next.js 16", "TypeScript", "Airtable", "Zapier", "Vercel Cron"]
+links: []
+facts: []
+figure: image
+image: /work/job-match.png
+imageAlt: "The Job Match Agent dashboard: run stats, the six step pipeline with timings, and the top ranked posting with its score breakdown, matched skills, gaps and tailored resume bullets."
+---
+
+<Chapter n="i." label="Problem">
+
+Job boards return hundreds of postings a day and most are a poor fit. Keyword search alone can't tell fit apart: a posting can name every skill on my resume and still want a staff engineer with ten years of experience. Reading each one and rewriting bullets for ATS keywords takes hours, and the good roles go stale while I read the bad ones.
+
+</Chapter>
+
+<Chapter n="ii." label="Process">
+
+<Steps
+  caption="Fig. 2 · The LangGraph pipeline. A conditional edge skips to notify when no postings come back."
+  items={[
+    ["Index", "The resume is chunked one bullet per chunk, tagged with its section, and embedded into a vector store."],
+    ["Fetch", "Postings come from Adzuna or JSearch behind one swappable source interface, fetched in parallel and deduped across boards."],
+    ["Score", "Every requirement in a posting is embedded and matched to the two closest resume bullets, then blended with skill overlap, title fit and freshness."],
+    ["Draft", "The top candidates go to Claude with only the retrieved evidence. It returns a fit score, a rationale and three tailored bullets as validated structured output."],
+    ["Log", "Matches are upserted into Airtable on the job ID, so reruns never duplicate."],
+    ["Notify", "The top five go to a Zapier webhook as a daily digest, on a Vercel cron."],
+  ]}
+/>
+
+### Decisions that mattered
+
+<Decisions>
+  <Decision title="Ground the model in retrieval.">Claude only sees resume bullets the retriever found for that posting, so it can't invent experience I don't have.</Decision>
+  <Decision title="Blend, don't delegate.">The final score is 60% the retrieval and keyword heuristic and 40% Claude's judgment, so one odd model answer can't reorder the list.</Decision>
+  <Decision title="Calibrate per embedder.">Raw cosine scores from a local embedder and from Voyage sit in different bands, so each gets its own floor and ceiling before blending.</Decision>
+  <Decision title="Every service has a fallback.">With no keys, the agent runs on sample postings with a local embedder and template drafts. That made it testable, demoable and free to run.</Decision>
+</Decisions>
+
+<Shot src="/work/job-match-card.png" alt="One ranked match: score ring, breakdown bars, matched and missing skills, tailored bullets, and the retrieved resume evidence with similarity scores." caption="Fig. 3 · One match, opened. The evidence list is what Claude is allowed to write from." width={1440} height={986} />
+
+</Chapter>
+
+<Chapter n="iii." label="Result">
+
+<Stats items={[["5 / 5", "top matches on target"], ["≤ 14", "score for off target roles"], ["6", "graph nodes"], ["26", "automated tests"]]} />
+
+On a demo run of 12 sample postings, every role in the top five was an AI or LLM role, scoring 65.5 to 76.3. A nurse and a warehouse posting scored 13 to 14, a senior staff ML role was pushed down to 27 by the seniority discount, and a cross board repost was collapsed into one. The whole pipeline runs in about a tenth of a second without network calls.
+
+</Chapter>
